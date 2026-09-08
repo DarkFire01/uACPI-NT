@@ -1,7 +1,5 @@
 
-add_definitions(-D_NTSYSTEM_)
-
-list(APPEND SOURCE
+nt_add_kernel_library(arbiter
     arbiter.c
     entry.c
     handler.c
@@ -9,5 +7,5 @@ list(APPEND SOURCE
     range.c
     transaction.c)
 
-add_library(arbiter ${SOURCE})
-add_dependencies(arbiter bugcodes xdk)
+target_include_directories(arbiter PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_link_libraries(arbiter PUBLIC nt_shim)

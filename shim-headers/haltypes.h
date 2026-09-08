@@ -1,20 +1,3 @@
-/*++ NDK Version: 0098
-
-Copyright (c) Alex Ionescu.  All rights reserved.
-
-Header Name:
-
-    haltypes.h
-
-Abstract:
-
-    Type definitions for the HAL.
-
-Author:
-
-    Alex Ionescu (alexi@tinykrnl.org) - Updated - 27-Feb-2006
-
---*/
 
 #ifndef _HALTYPES_H
 #define _HALTYPES_H
@@ -22,9 +5,7 @@ Author:
 //
 // Dependencies
 //
-#include <umtypes.h>
-
-#ifndef NTOS_MODE_USER
+#include <ntshim.h>
 
 typedef struct _LOADER_PARAMETER_BLOCK *PLOADER_PARAMETER_BLOCK;
 typedef struct _KPRCB *PKPRCB;
@@ -2025,12 +2006,13 @@ typedef struct _BUS_HANDLER
 //
 // Kernel Exports
 //
-#if !defined(_NTSYSTEM_) && (defined(_NTDRIVER_) || defined(_NTDDK_) || defined(_NTIFS_) || defined(_NTHAL_))
-extern NTSYSAPI PHAL_PRIVATE_DISPATCH HalPrivateDispatchTable;
-#define HALPRIVATEDISPATCH ((PHAL_PRIVATE_DISPATCH)&HalPrivateDispatchTable)
+#if (defined(_NTDRIVER_) || defined(_NTDDK_) || defined(_NTIFS_) || defined(_NTHAL_)) && \
+    !defined(_NTHALLIB_) && !defined(_NTSYSTEM_)
+extern PHAL_PRIVATE_DISPATCH HalPrivateDispatchTable;
+#define HALPRIVATEDISPATCH  HalPrivateDispatchTable
 #else
-extern NTSYSAPI HAL_PRIVATE_DISPATCH HalPrivateDispatchTable;
-#define HALPRIVATEDISPATCH (&HalPrivateDispatchTable)
+extern HAL_PRIVATE_DISPATCH HalPrivateDispatchTable;
+#define HALPRIVATEDISPATCH  (&HalPrivateDispatchTable)
 #endif
 
 //
@@ -2059,7 +2041,6 @@ typedef struct _X86_BIOS_REGISTERS
     USHORT SegEs;
 } X86_BIOS_REGISTERS, *PX86_BIOS_REGISTERS;
 
-#endif
 #endif
 
 

@@ -1,20 +1,3 @@
-/*++ NDK Version: 0098
-
-Copyright (c) Alex Ionescu.  All rights reserved.
-
-Header Name:
-
-    halfuncs.h
-
-Abstract:
-
-    Function definitions for the HAL.
-
-Author:
-
-    Alex Ionescu (alexi@tinykrnl.org) - Updated - 27-Feb-2006
-
---*/
 
 #ifndef _HALFUNCS_H
 #define _HALFUNCS_H
@@ -22,12 +5,9 @@ Author:
 //
 // Dependencies
 //
-#include <umtypes.h>
+#include <ntshim.h>
 #include <haltypes.h>
-#include <ketypes.h>
-#include <section_attribs.h>
 
-#ifndef NTOS_MODE_USER
 
 //
 // Private HAL Callbacks
@@ -215,33 +195,6 @@ HalAllProcessorsStarted(
     VOID
 );
 
-#ifdef _ARC_
-NTHALAPI
-VOID
-NTAPI
-HalInitializeProcessor(
-    _In_ ULONG ProcessorNumber,
-    _In_ struct _LOADER_PARAMETER_BLOCK *LoaderBlock
-);
-
-CODE_SEG("INIT")
-NTHALAPI
-BOOLEAN
-NTAPI
-HalInitSystem(
-    _In_ ULONG BootPhase,
-    _In_ struct _LOADER_PARAMETER_BLOCK *LoaderBlock
-);
-
-NTHALAPI
-BOOLEAN
-NTAPI
-HalStartNextProcessor(
-    _In_ struct _LOADER_PARAMETER_BLOCK *LoaderBlock,
-    _In_ PKPROCESSOR_STATE ProcessorState
-);
-
-#endif
 
 NTHALAPI
 VOID
@@ -296,15 +249,6 @@ HalEnableSystemInterrupt(
     _In_ KINTERRUPT_MODE InterruptMode
 );
 
-#ifdef __REACTOS__
-NTHALAPI
-VOID
-NTAPI
-HalEndSystemInterrupt(
-    _In_ KIRQL Irql,
-    _In_ PKTRAP_FRAME TrapFrame
-);
-#else
 NTHALAPI
 VOID
 NTAPI
@@ -312,7 +256,6 @@ HalEndSystemInterrupt(
     _In_ KIRQL Irql,
     _In_ UCHAR Vector
 );
-#endif
 
 #ifdef _ARM_ // FIXME: ndk/arm? armddk.h?
 NTHALAPI
@@ -387,25 +330,16 @@ HalAdjustResourceList(
     _Inout_ PIO_RESOURCE_REQUIREMENTS_LIST *pResourceList
 );
 
-//
-// Environment Functions
-//
-#ifdef _ARC_
+#if defined(NO_LEGACY_DRIVERS) && (defined(_X86_) || defined(_AMD64_))
 NTHALAPI
-ARC_STATUS
-NTAPI
-HalSetEnvironmentVariable(
-    _In_ PCH Name,
-    _In_ PCH Value
-);
-
-NTHALAPI
-ARC_STATUS
-NTAPI
-HalGetEnvironmentVariable(
-    _In_ PCH Variable,
-    _In_ USHORT Length,
-    _Out_ PCH Buffer
+ULONG
+HalGetInterruptVector(
+    _In_ INTERFACE_TYPE InterfaceType,
+    _In_ ULONG BusNumber,
+    _In_ ULONG BusInterruptLevel,
+    _In_ ULONG BusInterruptVector,
+    _Out_ PKIRQL Irql,
+    _Out_ PKAFFINITY Affinity
 );
 #endif
 
@@ -501,5 +435,4 @@ x86BiosCall(
     _In_ ULONG InterruptNumber,
     _Inout_ PX86_BIOS_REGISTERS Registers);
 
-#endif // NTOS_MODE_USER
 #endif // _HALFUNCS_H
