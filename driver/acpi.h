@@ -14,12 +14,12 @@
 #include <uacpi/tables.h>
 #include <uacpi/utilities.h>
 
-#define ACPI_POOL_TAG   'ipcA'
+#define UACPINT_POOL_TAG   'ipcA'
 
 #if (NTDDI_VERSION >= NTDDI_WIN8)
-#define ACPI_NONPAGED_POOL  NonPagedPoolNx
+#define UACPINT_NONPAGED_POOL  NonPagedPoolNx
 #else
-#define ACPI_NONPAGED_POOL  NonPagedPool
+#define UACPINT_NONPAGED_POOL  NonPagedPool
 #endif
 
 #endif /* _UACPI_NT_ACPI_H */

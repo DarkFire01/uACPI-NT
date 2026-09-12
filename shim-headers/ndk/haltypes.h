@@ -1,3 +1,3 @@
-/* ReactOS NDK compatibility shim -- see ../haltypes.h */
+/* ReactOS NDK compatibility shim, see ../haltypes.h */
 #pragma once
 #include <haltypes.h>
