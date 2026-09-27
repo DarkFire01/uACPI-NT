@@ -11,6 +11,9 @@ nt_add_kernel_library(uacpi ${UACPI_SOURCES})
 
 target_include_directories(uacpi PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
+target_include_directories(uacpi PUBLIC "${CMAKE_SOURCE_DIR}/uacpi-host")
+target_compile_definitions(uacpi PUBLIC UACPI_OVERRIDE_LIBC)
+
 target_compile_options(uacpi PUBLIC
     /wd4200)    # nonstandard extension: zero-sized array in struct/union
 

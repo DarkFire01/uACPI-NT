@@ -1,5 +1,5 @@
 #
-# nt_shim -- the NT interfaces the public WDK does not declare.
+# nt_shim, the NT interfaces the public WDK does not declare.
 #
 # Header-only.  Anything that links this gets <ntshim.h>, <haltypes.h>,
 # <halfuncs.h>, <haldispatch.h>, <rtlrangelist.h> and <debug.h> on its include
