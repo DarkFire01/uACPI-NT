@@ -174,13 +174,6 @@ static ULONG UacpiNtGsivForcedLow[UACPINT_MAX_GSIV / 32];
 static ULONG UacpiNtHalGrantedVectors[(UACPINT_MAX_IDT_VECTOR + 1) / 32];
 static ULONG UacpiNtHalGrantedCount;
 
-/*
- * HAL owned vector per line. Under the APIC model asking the HAL about a
- * line assigns it a vector from the band granted to us, so this map is only
- * filled from lines the HAL already owns and never probed up front.
- */
-static ULONG UacpiNtHalLineVector[UACPINT_MAX_GSIV];
-
 static UACPINT_MESSAGE_RUN UacpiNtMessageRuns[UACPINT_MAX_MESSAGE_RUNS];
 
 static ULONG UacpiNtSecondaryVectorGsiv[UACPINT_SECONDARY_VECTOR_COUNT];
@@ -485,24 +478,6 @@ UacpiNtSeedIdtState(
     }
 }
 
-/* TRUE when the HAL maps Vector to a line other than Gsiv, UACPINT_MAX_GSIV matches any line */
-static
-BOOLEAN
-NTAPI
-UacpiNtVectorIsHalLine(
-    _In_ ULONG Vector,
-    _In_ ULONG Gsiv)
-{
-    ULONG Line;
-
-    for (Line = 0; Line < UACPINT_MAX_GSIV; Line++)
-    {
-        if (UacpiNtHalLineVector[Line] == Vector && Line != Gsiv)
-            return TRUE;
-    }
-
-    return FALSE;
-}
 
 /* Caller holds UacpiNtIrqLibLock */
 static
@@ -619,8 +594,6 @@ UacpiNtApicAllocateVector(
     _Out_ PULONG Vector)
 {
     PVOID Owner = (PVOID)(ULONG_PTR)(Gsiv + 1);
-    KAFFINITY HalAffinity = 0;
-    KIRQL HalIrql = 0;
     ULONG Candidate;
 
     /* Shared line or a repeated query */
@@ -633,28 +606,10 @@ UacpiNtApicAllocateVector(
     if (!UacpiNtProcessorIdtCount)
         return STATUS_UNSUCCESSFUL;
 
-    /* A vector the HAL already has for this line is taken as is */
-    if (UacpiNtHalGetInterruptVector)
-    {
-        Candidate = UacpiNtHalGetInterruptVector(Internal, 0, Gsiv, Gsiv, &HalIrql, &HalAffinity);
-        if (Candidate && Candidate <= UACPINT_MAX_IDT_VECTOR)
-        {
-            UacpiNtClaimVectors(Candidate, Candidate, Owner);
-            if (Gsiv < UACPINT_MAX_GSIV)
-            {
-                UacpiNtGsivVector[Gsiv] = Candidate;
-                UacpiNtHalLineVector[Gsiv] = Candidate;
-            }
-
-            *Vector = Candidate;
-            return STATUS_SUCCESS;
-        }
-    }
-
+    /* Device vectors come from the band the HAL granted, the HAL hands out none of them */
     for (Candidate = UACPINT_DEVICE_VECTOR_FIRST; Candidate <= UACPINT_DEVICE_VECTOR_LAST; Candidate++)
     {
-        /* Never take a vector the HAL owes a different line */
-        if (UacpiNtVectorIsHalLine(Candidate, Gsiv) || !UacpiNtVectorFreeEverywhere(Candidate))
+        if (!UacpiNtVectorFreeEverywhere(Candidate))
             continue;
 
         UacpiNtClaimVectors(Candidate, Candidate, Owner);
@@ -697,11 +652,8 @@ UacpiNtApicAllocateVectorRange(
         /* Line and message vectors cannot share an entry */
         for (Offset = 0; Offset < Count; Offset++)
         {
-            if (UacpiNtVectorIsHalLine(Candidate + Offset, UACPINT_MAX_GSIV) ||
-                !UacpiNtVectorFreeEverywhere(Candidate + Offset))
-            {
+            if (!UacpiNtVectorFreeEverywhere(Candidate + Offset))
                 break;
-            }
         }
 
         if (Offset < Count)
