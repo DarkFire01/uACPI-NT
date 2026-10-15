@@ -49,6 +49,7 @@ typedef enum _DEVICE_RESET_TYPE
 
 typedef
 NTSTATUS
+NTAPI
 DEVICE_RESET_HANDLER(
     _In_ PVOID InterfaceContext,
     _In_ DEVICE_RESET_TYPE ResetType,
