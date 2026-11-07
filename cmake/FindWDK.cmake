@@ -125,7 +125,7 @@ find_package_handle_standard_args(WDK
 
 if(WDK_FOUND)
     set(_wdk_libs ntoskrnl hal wmilib wdmsec wdmguid ntstrsafe libcntpr
-                  BufferOverflowFastFailK ${WDK_REQUESTED_LIBRARIES})
+                  BufferOverflowFastFailK BufferOverflowK ${WDK_REQUESTED_LIBRARIES})
     list(REMOVE_DUPLICATES _wdk_libs)
     foreach(_lib IN LISTS _wdk_libs)
         if(NOT TARGET WDK::${_lib} AND EXISTS "${WDK_LIBRARY_DIR}/${_lib}.lib")

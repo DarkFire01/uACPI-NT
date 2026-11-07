@@ -49,7 +49,7 @@ function(nt_kernel_init)
     target_compile_options(nt_kernel_settings INTERFACE
         /X          # ignore %INCLUDE%: the list above is the whole include path
         /kernel     # kernel-mode code generation
-        /GS         # required by /kernel; satisfied by BufferOverflowFastFailK
+        /GS         # required by /kernel; satisfied by the BufferOverflow library
         /Gy         # COMDAT functions, so /OPT:REF can do its job
         /Zp8        # WDK structure packing
         /Oi
@@ -124,10 +124,24 @@ function(nt_add_driver name)
         /IGNORE:4210
         /IGNORE:4078)
 
+    # Loaders before Windows 8 never seed the /GS cookie, and the fast fail
+    # variant traps on an unseeded one, so older targets seed it themselves.
+    math(EXPR _ntddi "${NT_TARGET_NTDDI}")
+    math(EXPR _ntddi_win8 "0x06020000")
+    if(_ntddi LESS _ntddi_win8)
+        set(_gs_lib WDK::BufferOverflowK)
+    else()
+        set(_gs_lib WDK::BufferOverflowFastFailK)
+    endif()
+
+    if(NOT TARGET ${_gs_lib})
+        message(FATAL_ERROR "${_gs_lib} not found in ${WDK_LIBRARY_DIR}")
+    endif()
+
     target_link_libraries(${name} PRIVATE
         WDK::ntoskrnl
         WDK::hal
-        WDK::BufferOverflowFastFailK)
+        ${_gs_lib})
 
     if(WDK_ARCH MATCHES "^arm" AND TARGET WDK::libcntpr)
         target_link_libraries(${name} PRIVATE WDK::libcntpr)

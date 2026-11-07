@@ -3,7 +3,7 @@
  * LICENSE:     MIT (https://spdx.org/licenses/MIT)
  * PURPOSE:     ReactOS-style DPRINT macros
  *
- * Raise the level with, e.g.
+ * Debug builds print every DPRINT unfiltered. Release builds need, e.g.
  *     ed nt!Kd_IHVDRIVER_Mask 0xffffffff
  */
 
@@ -18,10 +18,17 @@
 
 #define DPRINT1(...) DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, __VA_ARGS__)
 
-#ifdef NDEBUG
+#if DBG
+#define UACPINT_DPRINT_LEVEL DPFLTR_ERROR_LEVEL
+#else
+#define UACPINT_DPRINT_LEVEL DPFLTR_TRACE_LEVEL
+#endif
+
+/* Debug builds log every file, including those that define NDEBUG */
+#if defined(NDEBUG) && !DBG
 #define DPRINT(...) ((void)0)
 #else
-#define DPRINT(...) DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_TRACE_LEVEL, __VA_ARGS__)
+#define DPRINT(...) DbgPrintEx(DPFLTR_IHVDRIVER_ID, UACPINT_DPRINT_LEVEL, __VA_ARGS__)
 #endif
 
 #define UNIMPLEMENTED       DPRINT1("%s is UNIMPLEMENTED\n", __FUNCTION__)
